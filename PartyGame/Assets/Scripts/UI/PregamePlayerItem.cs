@@ -3,8 +3,8 @@ using UnityEngine.UI;
 
 public class PregamePlayerItem : MonoBehaviour {
 
+	[SerializeField] Image background;
 	[SerializeField] Text usernameText;
-	[SerializeField] GameObject background;
 
 	public void Setup(string _username, Color _color) {
 		usernameText.text = _username;

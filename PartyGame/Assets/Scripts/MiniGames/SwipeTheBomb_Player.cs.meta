@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6e03c74423fe646be86b5423505ab260
+timeCreated: 1479760422
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - startGameBtn: {fileID: 114000010862594898, guid: 5a869ea07126f4c28889813666e62493,
+      type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

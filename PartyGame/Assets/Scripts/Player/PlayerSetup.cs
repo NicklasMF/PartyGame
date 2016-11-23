@@ -5,6 +5,8 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(Player))]
 public class PlayerSetup : NetworkBehaviour {
 
+	public bool isTheServer;
+
 	[SerializeField] Behaviour[] componentsToDisable;
 	[SerializeField] string remoteLayerName = "RemotePlayer";
 //	[SerializeField] string dontDrawLayerName = "DontDraw";
@@ -14,40 +16,38 @@ public class PlayerSetup : NetworkBehaviour {
 		//Transform _playerFolder = _imageTarget.transform.FindDeepChild("Players");
 		//gameObject.transform.SetParent(_playerFolder);
 
-
-		string _username = "Loading...";
-
-		/*if () {
-			Hvis username er indtastet..	
+		if (!isTheServer) {
+			string _username = "Loading...";
+			_username = transform.name;
+			CmdSetUsername(transform.name, _username);
 		} else {
-			
-		}*/
-
-		_username = transform.name;
-		CmdSetUsername(transform.name, _username);
+			transform.name = "Server Object";
+		}
 
 		if (!isLocalPlayer) {
 			AssignRemoteLayer();
 		} else {
 			
 		}
-
 		//playerGraphics.GetComponent<Renderer>().material.color = GetComponent<Player>().color;
 
-
-	}
-
-
-
-	void Update() {
 	}
 
 	public override void OnStartClient() {
 		base.OnStartClient();
+
 		string _netID = GetComponent<NetworkIdentity>().netId.ToString();
 		Player _player = GetComponent<Player>();
-		GameManager.RegisterPlayer(_netID, _player);
-		GetComponent<Player>().SetPlayerIndex();
+
+		if (!GameManager.IsThereAServer()) {
+			isTheServer = true;
+			GameManager.RegisterServer(_netID, _player);
+		} else {
+			isTheServer = false;
+			GameManager.RegisterPlayer(_netID, _player);
+			GetComponent<Player>().SetPlayerIndex();
+		}
+
 	}
 
 	void RegisterPlayer() {
@@ -55,6 +55,13 @@ public class PlayerSetup : NetworkBehaviour {
 		transform.name = _ID;
 	}
 
+	void SetLayerRecursively(GameObject obj, int newLayer) {
+		obj.layer = newLayer;
+
+		foreach(Transform child in obj.transform) {
+			SetLayerRecursively(child.gameObject, newLayer);
+		}
+	}
 
 	void AssignRemoteLayer() {
 		gameObject.layer = LayerMask.NameToLayer(remoteLayerName);

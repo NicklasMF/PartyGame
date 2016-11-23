@@ -14,22 +14,24 @@ public class Player : NetworkBehaviour {
 	[SyncVar] public string username = "Loading...";
 	[SyncVar] public int score = 0;
 
-	[SerializeField] public GameObject gameManager;
-
 	public Color color;
+	public int seatNo;
+	public int seatIndex;
 	private int playerIndex;
 
 	void Start() {
+		DontDestroyOnLoad(gameObject);
 
 		SetColor();
 
 		if (isLocalPlayer) {
 			SetPlayerIndex();
+			seatNo = 0;
 		}
 	}
 
 	void SetColor() {
-		color = gameManager.GetComponent<GameManager>().GetPlayerColor(playerIndex);
+		color = GetComponent<GameController>().gameManager.GetComponent<GameManager>().GetPlayerColor(playerIndex);
 	}
 
 	public void SetPlayerIndex() {
@@ -38,5 +40,13 @@ public class Player : NetworkBehaviour {
 		
 	public void SetScore(int _score) {
 		score += _score;
+	}
+
+	public void SetSeat(int _seatNo) {
+		seatNo = _seatNo;
+	}
+
+	public void SetIndex(int _index) {
+		seatIndex = _index;
 	}
 }
