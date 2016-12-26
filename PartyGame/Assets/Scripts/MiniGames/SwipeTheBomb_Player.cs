@@ -26,7 +26,7 @@ public class SwipeTheBomb_Player : NetworkBehaviour {
 	void Start () {
 		isTheServer = transform.GetComponent<PlayerSetup>().isTheServer;	
 		GeneratePlayerArray();
-
+		haveTheBombIndex = -1;
 		if (!isLocalPlayer)
 			return;
 
@@ -70,17 +70,18 @@ public class SwipeTheBomb_Player : NetworkBehaviour {
 			}
 		}
 
-		if (isLocalPlayer && Input.GetKeyDown(KeyCode.M)) CmdSetTheBomb(GetComponent<Player>().seatNo-1);
+		if (gameStarted) {
+			//if (havingTheBomb) {
+			if (SwipeManager.IsSwipingRight() || Input.GetKeyDown(KeyCode.Y)) {
+				Debug.Log("Aflevér bomben til højre");
+				SendingTheBomb(1);
+			} else if (SwipeManager.IsSwipingLeft() || Input.GetKeyDown(KeyCode.T)) {
+				Debug.Log("Aflevér bomben til venstre");
+				SendingTheBomb(-1);
+			}
+			//}
 
-		//if (havingTheBomb) {
-		if (SwipeManager.IsSwipingRight() || Input.GetKeyDown(KeyCode.Y)) {
-			Debug.Log("Aflevér bomben til højre");
-			SendingTheBomb(1);
-		} else if (SwipeManager.IsSwipingLeft() || Input.GetKeyDown(KeyCode.T)) {
-			Debug.Log("Aflevér bomben til venstre");
-			SendingTheBomb(-1);
 		}
-		//}
 		if (Input.GetKeyDown(KeyCode.Space)) {
 			Debug.Log(haveTheBombIndex);
 			Debug.Log(playerArray[haveTheBombIndex]);
@@ -117,6 +118,7 @@ public class SwipeTheBomb_Player : NetworkBehaviour {
 
 	[Command]
 	public void CmdPlaceBomb() {
+		Debug.Log("Cmd Called");
 		int playerCount = playerArray.Count;
 		int playerPicked = Random.Range(1,playerCount);
 		haveTheBombIndex = playerPicked - 1;
@@ -127,11 +129,14 @@ public class SwipeTheBomb_Player : NetworkBehaviour {
 
 	[ClientRpc]
 	public void RpcBombSended(int _index) {
-		if (!isLocalPlayer) {
-			haveTheBombIndex = _index;
-			bool _bool = (haveTheBombIndex == GetComponent<Player>().seatIndex);
-			ui.GetComponent<SwipeTheBomb_PlayerUI>().HasTheBomb(_bool);
-			ui.GetComponent<SwipeTheBomb_PlayerUI>().SetBomb(haveTheBombIndex.ToString());
+		Debug.Log("RPC Called: "+_index);
+		SetTheBomb(_index);
+		if (isLocalPlayer) {
+			if (!isTheServer) {
+				bool _bool = (haveTheBombIndex == GetComponent<Player>().seatIndex);
+				ui.GetComponent<SwipeTheBomb_PlayerUI>().HasTheBomb(_bool);
+				ui.GetComponent<SwipeTheBomb_PlayerUI>().SetBomb(haveTheBombIndex.ToString());
+			}
 		}
 	}
 
@@ -144,6 +149,7 @@ public class SwipeTheBomb_Player : NetworkBehaviour {
 			} else if (haveTheBombIndex > playerArray.Count - 1) {
 				haveTheBombIndex = 0;
 			}
+			Debug.Log(haveTheBombIndex);
 			bool _bool = (haveTheBombIndex == GetComponent<Player>().seatIndex);
 			ui.GetComponent<SwipeTheBomb_PlayerUI>().HasTheBomb(_bool);
 			ui.GetComponent<SwipeTheBomb_PlayerUI>().SetBomb(haveTheBombIndex.ToString());
@@ -158,6 +164,9 @@ public class SwipeTheBomb_Player : NetworkBehaviour {
 		RpcBombSended(playerArray[haveTheBombIndex].seatNo);
 	}
 
+	void SetTheBomb(int _index) {
+		haveTheBombIndex = _index;
+	}
 
 	Player WhoHasSeat(int _seatNo) {
 		foreach(Player _player in GameManager.GetPlayers()) {

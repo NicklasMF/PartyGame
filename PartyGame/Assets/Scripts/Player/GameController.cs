@@ -10,28 +10,40 @@ public class GameController : NetworkBehaviour {
 
 	[SerializeField] public GameObject gameManager;
 	[SerializeField] GameObject[] sceneManagers;
-	[SerializeField] MonoBehaviour[] gameScripts;
+	[SerializeField] Behaviour[] gameScripts;
 	[SerializeField] GameObject pregameUIPrefab;
 	[SerializeField] GameObject playerUIPrefab;
 
+	public static Dictionary<string, int> miniGames = new Dictionary<string, int>();
 	public GameObject pregameUI;
 	public GameObject playerUI;
 	private string sceneName;
 
+	void GenerateDictionary() {
+		miniGames.Add("SwipeTheBomb", 0);
+	}
+
 	void Start() {
 		OnStartGame();
-
 		foreach (MonoBehaviour _comp in gameScripts) {
 			_comp.enabled = false;
+		}
+
+		if (isLocalPlayer) {
+			GenerateDictionary();
 		}
 	}
 
 	void EnableScript(string _name) {
-		foreach (MonoBehaviour _comp in gameScripts) {
+		foreach (Behaviour _comp in gameScripts) {
 			if (_comp.name == _name) {
 				_comp.enabled = true;
 			}
 		}
+	}
+
+	void EnableScript(int _index) {
+		gameScripts[_index].enabled = true;
 	}
 
 	[ClientRpc]
@@ -53,6 +65,10 @@ public class GameController : NetworkBehaviour {
 		SceneManager.sceneLoaded += OnNewLevel;
 	}
 
+	void OnDisable() {
+		SceneManager.sceneLoaded -= OnNewLevel;		
+	}
+
 
 
 	void OnStartGame() {
@@ -71,9 +87,11 @@ public class GameController : NetworkBehaviour {
 	}
 
 	void OnNewLevel(Scene _scene, LoadSceneMode mode) {
+		int scriptIndex = GetMiniGame(_scene.name);
+		//EnableScript(gameScripts[scriptIndex]);
+		EnableScript(scriptIndex);
 		if (isLocalPlayer) {
 			string sceneManagerName = _scene.name + "_SceneManager";
-			Debug.Log(sceneManagerName);
 			GameObject sceneManager = Instantiate(GetSceneManager(sceneManagerName)) as GameObject;
 
 			if (transform.GetComponent<PlayerSetup>().isTheServer) {
@@ -97,6 +115,15 @@ public class GameController : NetworkBehaviour {
 			}
 		}
 		return null;
+	}
+
+	public static int GetMiniGame(string _name) {
+		foreach(string key in miniGames.Keys){
+			if(key == _name){
+				return miniGames[key];
+			} 
+		}
+		return -1;
 	}
 
 }
