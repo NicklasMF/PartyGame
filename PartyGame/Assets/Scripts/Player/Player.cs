@@ -49,4 +49,16 @@ public class Player : NetworkBehaviour {
 	public void SetIndex(int _index) {
 		seatIndex = _index;
 	}
+
+
+	public void SetupPlayer() {
+		// color
+		//seatNo
+
+		seatNo = GameManager.GetEmptySeat();
+		string _id = GameManager.GetEmptyId().ToString();
+		GameManager.RegisterPlayer(_id, GetComponent<Player>());
+		GameManager.instance.fakePlayers++;
+
+	}
 }

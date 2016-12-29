@@ -5,25 +5,18 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(Player))]
 public class PlayerSetup : NetworkBehaviour {
 
-	public bool isTheServer;
-
 	[SerializeField] Behaviour[] componentsToDisable;
 	[SerializeField] string remoteLayerName = "RemotePlayer";
-//	[SerializeField] string dontDrawLayerName = "DontDraw";
 	[SerializeField] GameObject playerGraphics;
 
 	void Start() {
 		//Transform _playerFolder = _imageTarget.transform.FindDeepChild("Players");
 		//gameObject.transform.SetParent(_playerFolder);
 
-		if (!isTheServer) {
-			string _username = "Loading...";
-			_username = transform.name;
-			CmdSetUsername(transform.name, _username);
-		} else {
-			transform.name = "Server Object";
-		}
-
+		string _username = "Loading...";
+		_username = transform.name;
+		CmdSetUsername(transform.name, _username);
+	
 		if (!isLocalPlayer) {
 			AssignRemoteLayer();
 		} else {
@@ -38,15 +31,8 @@ public class PlayerSetup : NetworkBehaviour {
 
 		string _netID = GetComponent<NetworkIdentity>().netId.ToString();
 		Player _player = GetComponent<Player>();
-
-		if (!GameManager.IsThereAServer()) {
-			isTheServer = true;
-			GameManager.RegisterServer(_netID, _player);
-		} else {
-			isTheServer = false;
-			GameManager.RegisterPlayer(_netID, _player);
-			GetComponent<Player>().SetPlayerIndex();
-		}
+		GameManager.RegisterPlayer(_netID, _player);
+		GetComponent<Player>().SetPlayerIndex();
 
 	}
 

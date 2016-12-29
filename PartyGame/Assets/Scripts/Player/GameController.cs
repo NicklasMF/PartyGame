@@ -2,29 +2,36 @@
 using UnityEngine.Networking;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using UnityEngine.SceneManagement;
 
 // Class from Player Object //
 public class GameController : NetworkBehaviour {
 
-	[SerializeField] public GameObject gameManager;
-	[SerializeField] GameObject[] sceneManagers;
-	[SerializeField] Behaviour[] gameScripts;
-	[SerializeField] GameObject pregameUIPrefab;
-	[SerializeField] GameObject playerUIPrefab;
+	// GameThings
+	[SyncVar] int gamesPlayed = 0;
 
-	public static Dictionary<string, int> miniGames = new Dictionary<string, int>();
-	public GameObject pregameUI;
+
+	// Behind The Scenes //
+	[SerializeField] public GameObject gameManager;
+	[SerializeField] Behaviour[] gameScripts;
+	[SerializeField] GameObject gameUIPrefab;
+
+	private static Dictionary<int, string> allMiniGames = new Dictionary<int, string>();
+	public static Dictionary<int, int> gamesDict = new Dictionary<int, int>();
+	public GameObject gameUI;
+	private GameObject playerUIPrefab;
 	public GameObject playerUI;
 	private string sceneName;
 
 	void GenerateDictionary() {
-		miniGames.Add("SwipeTheBomb", 0);
-	}
+		allMiniGames.Add(0, "SwipeTheBomb");
 
+		GenerateGameDict(1);
+	}
+		
 	void Start() {
 		OnStartGame();
+
 		foreach (MonoBehaviour _comp in gameScripts) {
 			_comp.enabled = false;
 		}
@@ -32,6 +39,7 @@ public class GameController : NetworkBehaviour {
 		if (isLocalPlayer) {
 			GenerateDictionary();
 		}
+
 	}
 
 	void EnableScript(string _name) {
@@ -46,18 +54,24 @@ public class GameController : NetworkBehaviour {
 		gameScripts[_index].enabled = true;
 	}
 
+	[Command]
+	public void CmdGoToScene(string _scenename) {
+		if (isLocalPlayer) {
+			SceneManager.LoadScene(_scenename);
+		}
+	}
+/*	[Command]
+	public void CmdGoToScene(string scenename) {
+		foreach (Player _player in GameManager.GetPlayers()) {
+			_player.GetComponent<GameController>().RpcGoToScene(scenename);
+		}
+	}
+*/
 	[ClientRpc]
 	public void RpcGoToScene(string _scenename) {
 		if (isLocalPlayer) {
 			SceneManager.LoadScene(_scenename);
 			//OnNewLevel(_scene, _mode);
-		}
-	}
-
-	[Command]
-	public void CmdGoToScene(string _scenename) {
-		if (isLocalPlayer) {
-			SceneManager.LoadScene(_scenename);
 		}
 	}
 
@@ -73,57 +87,43 @@ public class GameController : NetworkBehaviour {
 
 	void OnStartGame() {
 		if (isLocalPlayer) {
-			if (transform.GetComponent<PlayerSetup>().isTheServer) {
-				pregameUI = Instantiate(pregameUIPrefab) as GameObject;
-			} else {
-				string _name = transform.name;
-				Color _color = transform.GetComponent<Player>().color;
-				playerUI = Instantiate(playerUIPrefab) as GameObject;
-				playerUI.GetComponent<UIPlayer>().SetWaitingScreen(_name, _color);
-			}
-
+			gameUI = Instantiate(gameUIPrefab) as GameObject;
 		}
-
 	}
 
 	void OnNewLevel(Scene _scene, LoadSceneMode mode) {
-		int scriptIndex = GetMiniGame(_scene.name);
-		//EnableScript(gameScripts[scriptIndex]);
-		EnableScript(scriptIndex);
-		if (isLocalPlayer) {
-			string sceneManagerName = _scene.name + "_SceneManager";
-			GameObject sceneManager = Instantiate(GetSceneManager(sceneManagerName)) as GameObject;
+		if (_scene.name != "GameRoom") {
+			int scriptIndex = GetMiniGame(_scene.name);
+			//EnableScript(gameScripts[scriptIndex]);
 
-			if (transform.GetComponent<PlayerSetup>().isTheServer) {
-				// Server
-				pregameUIPrefab = sceneManager.GetComponent<TheSceneManager>().uIServer;
-				pregameUI = Instantiate(pregameUIPrefab) as GameObject;
-			} else {
-				// Client
-				string _name = transform.name;
-				Color _color = transform.GetComponent<Player>().color;
+			EnableScript(scriptIndex);
+			if (isLocalPlayer) {
+				GameObject sceneManager = GameObject.FindGameObjectWithTag("SceneManager");
 				playerUIPrefab = sceneManager.GetComponent<TheSceneManager>().uIPlayer;
 				playerUI = Instantiate(playerUIPrefab) as GameObject;
 			}
+		} else {
+			gamesPlayed++;
 		}
 	}
-
-	GameObject GetSceneManager(string _name) {
-		foreach (GameObject _sm in sceneManagers) {
-			if (_sm.name == _name) {
-				return _sm;
-			}
-		}
-		return null;
-	}
-
+		
 	public static int GetMiniGame(string _name) {
-		foreach(string key in miniGames.Keys){
-			if(key == _name){
-				return miniGames[key];
-			} 
+		return allMiniGames.FirstOrDefault(x => x.Value == _name).Key;
+	}
+
+	public static string GetMiniGame(int _index) {
+		return allMiniGames[_index];
+	}
+
+	public int GetNextGameIndex() {
+		return gamesDict[gamesPlayed + 1];
+	}
+
+	void GenerateGameDict(int gameCount) {
+		for (int i = 1; i <= gameCount; i++) {
+			int gameNo = Random.Range(0, allMiniGames.Count - 1);
+			gamesDict.Add(i, gameNo);
 		}
-		return -1;
 	}
 
 }

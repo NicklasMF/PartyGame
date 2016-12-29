@@ -5,10 +5,14 @@ using System.Linq;
 
 public class GameManager : NetworkBehaviour {
 
+	[SerializeField] Player playerPrefab;
 	[SerializeField] Color[] playerColors;
 
 	public static GameManager instance;
 	public MatchSettings matchSettings;
+
+	public int fakePlayers;
+
 
 	void Awake() {
 		if (instance != null) {
@@ -21,19 +25,23 @@ public class GameManager : NetworkBehaviour {
 
 	void Start() {
 		DontDestroyOnLoad(gameObject);
+		fakePlayers = 0;
 	}
 
 	public Color GetPlayerColor(int _index) {
 		return playerColors[_index];
 	}
 
+	public void CreateNewPlayer() {
+		Player _player = Instantiate(playerPrefab);
+		_player.GetComponent<Player>().SetupPlayer();
+	}
 		
 	#region Player Register
 
 	private const string PLAYER_ID_PREFIX = "Player ";
 
 	private static Dictionary<string, Player> players = new Dictionary<string, Player>();
-	private static Dictionary<string, Player> servers = new Dictionary<string, Player>();
 
 	public static void RegisterPlayer(string _netID, Player _player) {
 		string _playerID = PLAYER_ID_PREFIX + _netID;
@@ -53,22 +61,13 @@ public class GameManager : NetworkBehaviour {
 		return players.Values.ToArray();
 	}
 
-	public static Player GetServer() {
-		return servers.Values.First();
-	}
-
-	public static void RegisterServer(string _netID, Player _player) {
-		string _playerID = "Server" + _netID;
-		servers.Add(_playerID, _player);
-		_player.transform.name = _playerID;
-	}
-
-	public static bool IsThereAServer() {
-		if (servers.Count == 0) {
-			return false;
-		} else {
-			return true;
+	public static Player GetLocalPlayer() {
+		foreach(Player _player in players.Values) {
+			if (_player.isLocalPlayer) {
+				return _player;
+			}
 		}
+		return null;
 	}
 
 	public static Player[] GetPlayersWhoNeedASeat() {
@@ -83,7 +82,6 @@ public class GameManager : NetworkBehaviour {
 
 	public static void ResetAll() {
 		players.Clear();
-		servers.Clear();
 	}
 
 	#endregion
@@ -131,6 +129,18 @@ public class GameManager : NetworkBehaviour {
 
 	}
 
+	public static int GetEmptySeat() {
+		for(int i = 0; i < 4; i++) {
+			if (GetPlayerBySeat(i) == null) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public static int GetEmptyId() {
+		return GameManager.instance.fakePlayers + 100;
+	}
 
 
 }
