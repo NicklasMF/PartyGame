@@ -16,7 +16,7 @@ public class PlayerSetup : NetworkBehaviour {
 		string _username = "Loading...";
 		_username = transform.name;
 		CmdSetUsername(transform.name, _username);
-	
+
 		if (!isLocalPlayer) {
 			AssignRemoteLayer();
 		} else {

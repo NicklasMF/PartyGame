@@ -54,19 +54,19 @@ public class GameController : NetworkBehaviour {
 		gameScripts[_index].enabled = true;
 	}
 
-	[Command]
+	/*[Command]
 	public void CmdGoToScene(string _scenename) {
 		if (isLocalPlayer) {
 			SceneManager.LoadScene(_scenename);
 		}
-	}
-/*	[Command]
+	}*/
+	[Command]
 	public void CmdGoToScene(string scenename) {
 		foreach (Player _player in GameManager.GetPlayers()) {
 			_player.GetComponent<GameController>().RpcGoToScene(scenename);
 		}
 	}
-*/
+
 	[ClientRpc]
 	public void RpcGoToScene(string _scenename) {
 		if (isLocalPlayer) {
@@ -88,6 +88,8 @@ public class GameController : NetworkBehaviour {
 	void OnStartGame() {
 		if (isLocalPlayer) {
 			gameUI = Instantiate(gameUIPrefab) as GameObject;
+			GetComponent<PlayerUIController>().SetUI(gameUI);
+			GetComponent<PlayerUIController>().ShowSeatings();
 		}
 	}
 

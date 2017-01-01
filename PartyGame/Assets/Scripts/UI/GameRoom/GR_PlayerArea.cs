@@ -10,19 +10,15 @@ public class GR_PlayerArea : MonoBehaviour {
 	[SerializeField] Text nameTxt;
 
 	void Start() {
-		GetComponent<Button>().onClick.AddListener(ButtonClick);
+		//GetComponent<Button>().onClick.AddListener(ButtonClick);
 	}
 
-	void ButtonClick() {
-		//preGameUIPrefab.GetComponent<PregameUI>().SetPlayer(gameObject, seatNo);
-		GameManager.GetLocalPlayer().GetComponent<Player>().SetSeat(seatNo);
-		SetupSeat();
-	}
 
-	void SetupSeat() {
-		Color _color = GameManager.instance.GetPlayerColor(seatNo);
+	public void SetupSeat() {
+		
+		Color _color = GameManager.GetPlayerBySeat(seatNo).color;
 		seatGO.GetComponent<Image>().color = _color;
-		nameTxt.text = GameManager.GetLocalPlayer().GetComponent<Player>().name;
+		nameTxt.text = GameManager.GetPlayerBySeat(seatNo).name;
 	}
 
 }

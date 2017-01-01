@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class MiniGames : MonoBehaviour {
+[System.Serializable]
+public class MiniGames {
+
 
 
 }

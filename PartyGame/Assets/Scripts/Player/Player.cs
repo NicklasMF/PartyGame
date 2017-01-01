@@ -13,9 +13,9 @@ public class Player : NetworkBehaviour {
 
 	[SyncVar] public string username = "Loading...";
 	[SyncVar] public int score = 0;
+	[SyncVar(hook = "UpdateSeatNo")] public int seatNo;
 
 	public Color color;
-	public int seatNo;
 	public int seatIndex;
 	private int playerIndex;
 
@@ -26,12 +26,18 @@ public class Player : NetworkBehaviour {
 
 		if (isLocalPlayer) {
 			SetPlayerIndex();
-			seatNo = 0;
+			seatNo = -1;
 		}
 	}
 
 	void SetColor() {
 		color = GetComponent<GameController>().gameManager.GetComponent<GameManager>().GetPlayerColor(playerIndex);
+	}
+
+	void UpdateSeatNo(int _seatNo) {
+		if (_seatNo >= 0) {
+			GetComponent<PlayerUIController>().UpdateSeatNo(_seatNo);
+		}
 	}
 
 	public void SetPlayerIndex() {
